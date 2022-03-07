@@ -2,13 +2,13 @@
 #include <array>
 #include <chrono>
 #include <sdsl/bit_vectors.hpp>
-#include "select_support.hpp"
+#include "rank_support.hpp"
 
 using namespace std;
 using namespace sdsl;
 using namespace std::chrono;
 
-// g++ -std=c++11 -O3 -DNDEBUG -I ~/include -L ~/lib part2.cpp -o part2 rank_support.cpp -lsdsl -ldivsufsort -ldivsufsort64
+// g++ -std=c++11 -O3 -DNDEBUG -I ~/include -L ~/lib part1.cpp -o part1 rank_support.cpp -lsdsl -ldivsufsort -ldivsufsort64
 
 int main()
 {
@@ -30,11 +30,12 @@ int main()
 
         for (int i = 0; i < n_sizes; i++) {
             int n = sizes[i];
+            // cout << n << endl;
 
             bit_vector bv(n, 1);
             
             start_time = high_resolution_clock::now();
-            SelectSupport* ss = new SelectSupport(&bv);
+            RankSupport* rs = new RankSupport(&bv);
             end_time = high_resolution_clock::now();
             diff_time = (end_time - start_time);
             // cout << diff_time.count() << endl;
@@ -43,19 +44,19 @@ int main()
             start_time = high_resolution_clock::now();
             for (int j = 0; j < 16; j++) {
                 int idx = rand() % n;
-                ss->select1(j);
+                rs->rank1(j);
             }
             end_time = high_resolution_clock::now();
             diff_time = (end_time - start_time);
             // cout << diff_time.count() << endl;
             query_times[k][i] = diff_time.count();
 
-            overheads[k][i] = ss->overhead();
+            overheads[k][i] = rs->overhead();
         }
     }
 
     ofstream file_obj;
-    file_obj.open("data/part2_creation_times.csv");
+    file_obj.open("part1/results/part1_creation_times.csv");
     file_obj << sizes[0];
     for(int i=1; i < n_sizes; i++) {
         file_obj << "," << sizes[i];
@@ -70,7 +71,7 @@ int main()
     }
     file_obj.close();
 
-    file_obj.open("data/part2_query_times.csv");
+    file_obj.open("part1/results/part1_query_times.csv");
     file_obj << sizes[0];
     for(int i=1; i < n_sizes; i++) {
         file_obj << "," << sizes[i];
@@ -85,7 +86,7 @@ int main()
     }
     file_obj.close();
 
-    file_obj.open("data/part2_overheads.csv");
+    file_obj.open("part1/results/part1_overheads.csv");
     file_obj << sizes[0];
     for(int i=1; i < n_sizes; i++) {
         file_obj << "," << sizes[i];

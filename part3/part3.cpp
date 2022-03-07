@@ -21,6 +21,7 @@ int main()
 
     int n_repeats = 10;
     
+    double create_and_fill_times[n_repeats][n_sizes][n_sparsities];
     double get_at_rank_times[n_repeats][n_sizes][n_sparsities];
     double get_at_index_times[n_repeats][n_sizes][n_sparsities];
     double num_elem_at_times[n_repeats][n_sizes][n_sparsities];
@@ -33,17 +34,17 @@ int main()
         duration<double, std::milli> diff_time;
 
         for (int j=0; j<n_sparsities; j++) {
-            int s = sparsities[j];
+            double s = sparsities[j];
             cout << s << endl;
             for (int i = 0; i < n_sizes; i++) {
                 uint64_t n = sizes[i];
                 cout << n << endl;
 
-                SparseArray* sa;
+                SparseArray* sa = new SparseArray;
 
-                sa->create(16);
-
-                cout << "fill array" << endl;
+                start_time = high_resolution_clock::now();
+                sa->create(n);
+                // cout << "fill array" << endl;
                 for (int x=0; x<ceil(n*s); x++) {
                     string elem = to_string(x);
                     int r = rand() % n;
@@ -53,10 +54,15 @@ int main()
                         success = sa->append(elem, r);
                     }
                 }
-                cout << "get at rank" << endl;
+                sa->build_rank_support();
+                end_time = high_resolution_clock::now();
+                diff_time = (end_time - start_time);
+                create_and_fill_times[k][i][j] = diff_time.count();
+
+                // cout << "get at rank" << endl;
                 start_time = high_resolution_clock::now();
                 for (int j = 0; j < 100; j++) {
-                    int r = rand() % (int)ceil(n*s);
+                    int r = rand() % (int)(n*s);
                     string elem;
                     sa->get_at_rank(r, elem);
                 }
@@ -64,7 +70,7 @@ int main()
                 diff_time = (end_time - start_time);
                 get_at_rank_times[k][i][j] = diff_time.count();
 
-                cout << "get at index" << endl;
+                // cout << "get at index" << endl;
                 start_time = high_resolution_clock::now();
                 for (int j = 0; j < 100; j++) {
                     int r = rand() % n;
@@ -75,7 +81,7 @@ int main()
                 diff_time = (end_time - start_time);
                 get_at_index_times[k][i][j] = diff_time.count();
 
-                cout << "num elem at" << endl;
+                // cout << "num elem at" << endl;
                 start_time = high_resolution_clock::now();
                 for (int j = 0; j < 100; j++) {
                     int r = rand() % n;
@@ -88,36 +94,59 @@ int main()
         }
     }
 
-    // ofstream file_obj;
-    // file_obj.open("data/part3_creation_times.csv");
-    // file_obj << sizes[0];
-    // for(int i=1; i < n_sizes; i++) {
-    //     file_obj << "," << sizes[i];
-    // }
-    // file_obj << endl;
-    // for(int k=0; k < n_repeats; k++) {
-    //     file_obj << creation_times[k][0];
-    //     for(int i=1; i < n_sizes; i++) {
-    //         file_obj << "," << creation_times[k][i];
-    //     }    
-    //     file_obj << endl;
-    // }
-    // file_obj.close();
+    cout << "Writing files" << endl;
 
-    // file_obj.open("data/part3_query_times.csv");
-    // file_obj << sizes[0];
-    // for(int i=1; i < n_sizes; i++) {
-    //     file_obj << "," << sizes[i];
-    // }
-    // file_obj << endl;
-    // for(int k=0; k < n_repeats; k++) {
-    //     file_obj << query_times[k][0];
-    //     for(int i=1; i < n_sizes; i++) {
-    //         file_obj << "," << query_times[k][i];
-    //     }    
-    //     file_obj << endl;
-    // }
-    // file_obj.close();
+    ofstream file_creation;
+    ofstream file_rank;
+    ofstream file_index;
+    ofstream file_num_elem;
+
+    file_creation.open("part3/results/part3_creation_times.csv");
+    file_rank.open("part3/results/part3_get_at_rank_times.csv");
+    file_index.open("part3/results/part3_get_at_index_times.csv");
+    file_num_elem.open("part3/results/part3_num_elem_at_times.csv");
+
+    file_creation << "sparsity," << sizes[0];
+    file_rank << "sparsity," << sizes[0];
+    file_index << "sparsity," << sizes[0];
+    file_num_elem << "sparsity," << sizes[0];
+
+    for(int i=1; i < n_sizes; i++) {
+        file_creation << "," << sizes[i];
+        file_rank << "," << sizes[i];
+        file_index << "," << sizes[i];
+        file_num_elem << "," << sizes[i];
+
+    }
+    file_creation << endl;
+    file_rank << endl;
+    file_index << endl;
+    file_num_elem << endl;
+
+    for(int s=0; s<n_sparsities; s++) {
+        file_creation << sparsities[s];
+        file_rank << sparsities[s];
+        file_index << sparsities[s];
+        file_num_elem << sparsities[s];
+
+        for(int k=0; k < n_repeats; k++) {
+            for(int i=0; i < n_sizes; i++) {
+                file_creation << "," << create_and_fill_times[k][i][s];
+                file_rank << "," << get_at_rank_times[k][i][s];
+                file_index << "," << get_at_index_times[k][i][s];
+                file_num_elem << "," << num_elem_at_times[k][i][s];
+
+            }    
+            file_creation << endl;
+            file_rank << endl;
+            file_index << endl;
+            file_num_elem << endl;
+        }
+    }
+    file_creation.close();
+    file_rank.close();
+    file_index.close();
+    file_num_elem.close();
 }
 
 // Timing instructions from: https://www.apress.com/gp/blog/all-blog-posts/timing-things-in-c-plus-plus/17405398#:~:text=If%20you%20want%20to%20measure,You%20gotta%20start%20somewhere.
