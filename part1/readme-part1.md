@@ -17,7 +17,7 @@ In order to implement rank support for a bit vector, I used the blocks and super
 |-----------|---|---|---|
 |Bit vector |  $1$ | $n$ | $1$ |
 |Superblocks| $(l_b)^2=\lceil\log_2(n)\rceil^2$ |$\frac{n}{l_{sb}} = \frac{n}{\lceil\log_2(n)\rceil^2}$ | $\lceil\log_2n\rceil$|
-|Blocks     | $\lceil\log_2(n)\rceil$ | $\frac{n}{l_b}=\frac{n}{\lceil\log_2(n)\rceil}$|$ \log_2l_{sb} = \lceil\log_2\lceil\log_2n\rceil^2\rceil$|
+|Blocks     | $\lceil\log_2(n)\rceil$ | $\frac{n}{l_b}=\frac{n}{\lceil\log_2(n)\rceil}$|$\log_2l_{sb} = \lceil\log_2\lceil\log_2n\rceil^2\rceil$|
 
 The blocks and superblocks are filled in by doing a single loop over the bit vector and calculating the relavant indices. If it is the first index of a superblock, it will copy the value from the previous superblock. If is is the first index of a block, but not the first block of a super block, it copies the value from the previous super block. Then it will increase the values if the bit vector at that index is 1 (unless it is the first block in a superblock, which stays 0).
 

@@ -4,6 +4,8 @@ MG Hirsch
 
 See instructions here: https://rob-p.github.io/CMSC858D_S22/assignments/01_assignment_01
 
+Github repository: https://github.com/mghirsch42/CMSC858D-Sp22-HW1
+
 ## Part 1: Rank
 
 ### Description
@@ -101,15 +103,36 @@ The above figure plots the sparse array creation times against the bit vector si
 
 <img src="part3/results/part3-get-at-rank.png" width=400px/>
 
-The above figure shows the time taken to run the `get_at_rank` query for a random index 100 times with different sparsity levels with respect to the bit vector size. 
+The above figure shows the time taken to run the `get_at_rank` query for a random index 100 times with different sparsity levels with respect to the bit vector size. The higher sparsity levels have a sudden increase in query time when increasing from 1000 to 10,000 bits in the bit vector that is not seen in the lowest sparsity level. 
 
 <img src="part3/results/part3-get-at-index.png" width=400px/>
 
-The figure above shows the time taken to run the `get_at_index` query for a random index 100 times with different sparsity levels with respect to the bit vector size.
+The figure above shows the time taken to run the `get_at_index` query for a random index 100 times with different sparsity levels with respect to the bit vector size. Generally, the more elements in the array, and the longer the array, the greater the query time. However the precise relationship is not clear from this plot.
 
 <img src="part3/results/part3-num-elem-at.png" width=400px/>
 
-The figure above shows the time taken to run the `num_elem_at` query for a random index 100 times with different sparsity levels with respect to the bit vector size.
+The figure above shows the time taken to run the `num_elem_at` query for a random index 100 times with different 
+sparsity levels with respect to the bit vector size. Similarly to the previous query, the more elements in the array, and the longer the array, the greater the query time, but the precise relationship is not clear from this plot.
+
+### Size comparison to dense array
+
+The size of this sparse array representation is the space taken up by the bit vector plus the space taken up by the superblocks plus the space taken up by the blocks. Say we want to represent a space array of sie $n$. Then the space taken up by the bit vector is $n$. The space taken up by the blocks is the number of blocks, $\frac{n}{\log_2n}$, times the width of each block, $\log_2(\log_2^2n)$, which equals $n*\frac{\log_2(\log_2^2n)}{\log_2n}$. The space taken up by the superblocks is the number of superblocks, $\frac{n}{\log_2^2n}$, times the width of each superblock, $\log_2n$, which equals $n*\frac{1}{\log_2n}$. Summing these gives $n + n*\frac{\log_2(\log_2^2n)}{\log_2n} + n*\frac{1}{\log_2n}$ or $n*(1+\frac{\log_2(\log_2^2n)}{\log_2n}+\frac{1}{\log_2n})$. As we add elements to the sparse array, we add the number of bits of each element, but the size of the underlying structure does not change. Thus the size of the structure minus the size of the elements themselves is constant with respect to sparsity.
+
+Consider now if each empty element was stored as an empty string instead of using the bit vector. Each empty element would take 8 bits. So the size of the empty dense vector would be $8n$. However, every time we added an element, the size would increase by the number of bits needed to store that element and decrease by the number of bits needed to store the empty element. So in this case, the size of the structure depends on sparsity. If the array has sparsity $s$ (where $0<s\leq1$), then the size of the dense array (minus the size of the elements) would be $8n-8ns = 8n*(1-s)$. 
+
+We can calculate the space savings of the sparse array as the difference of these two values:
+
+$8n*(1-s)-n*(1+\frac{\log_2(\log_2^2n)}{\log_2n}+\frac{1}{\log_2n})$
+
+The number of bits saved with a 1% sparsity and an array size of 1000 is approximately 5424 bits. The number of bits saved with .1% sparsity and an array size of 1,000,000 is approximately 6,516,000 million bits. 
+
+To find when the dense array would be preferred to the sparse array, we can find where it's space would be less: 
+
+$8n*(1-s)<n*(1+\frac{\log_2(\log_2^2n)}{\log_2n}+\frac{1}{\log_2n})$
+
+$s>1-\frac{1}{8}(1+\frac{\log_2(\log_2^2n)}{\log_2n}+\frac{1}{\log_2n})$
+
+For an array of length 1000, the sparsity would need to be at least about 79.5% (79.5% of the elements filled in) for the dense representation to take less space. Similarly, for an array of length 1,000,00, the sparsity would need to be at least approximately 81.5%. 
 
 ### Hardest part
 
